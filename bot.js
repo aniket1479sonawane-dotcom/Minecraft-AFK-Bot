@@ -9,64 +9,34 @@ http.createServer((req, res) => {
 
 const SERVER_HOST = 'fun.kelmora.cloud';
 const SERVER_PORT = 25581;
-const BOT_USERNAME = 'FatAl_TErr0r'; 
-const SERVER_VERSION = '1.21.1';
-const STEP_INTERVAL = 1500;
-const JUMP_DURATION = 500;
+const BOT_USERNAME = 'Obanai_Iguro1479'; // Choose any name you want
+const SERVER_VERSION = '1.21.11';
+const PASSWORD = 'Aniket@1479'; // CHANGE THIS to your server login password
 
 function createBot() {
-    console.log('--- Initializing Bot Connection ---');
+    console.log('--- Initializing Offline Bot ---');
 
     const bot = mineflayer.createBot({
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: BOT_USERNAME,
-        auth: 'microsoft',
+        auth: 'offline', // Switched to offline
         version: SERVER_VERSION
     });
 
-    let movementPhase = 0;
-
-    function movementCycle() {
-        if (!bot.entity) return;
-        switch (movementPhase) {
-            case 0:
-                bot.setControlState('forward', true);
-                bot.setControlState('back', false);
-                bot.setControlState('jump', false);
-                break;
-            case 1:
-                bot.setControlState('forward', false);
-                bot.setControlState('back', true);
-                bot.setControlState('jump', false);
-                break;
-            case 2:
-                bot.setControlState('forward', false);
-                bot.setControlState('back', false);
-                bot.setControlState('jump', true);
-                setTimeout(() => { bot.setControlState('jump', false); }, JUMP_DURATION);
-                break;
-            case 3:
-                bot.setControlState('forward', false);
-                bot.setControlState('back', false);
-                bot.setControlState('jump', false);
-                break;
-        }
-        movementPhase = (movementPhase + 1) % 4;
-        setTimeout(movementCycle, STEP_INTERVAL);
-    }
-
     bot.once('spawn', () => {
-        console.log('✅ Bot spawned, running command...');
+        console.log('✅ Bot spawned. Sending login command...');
+        
+        // Wait 2 seconds, then login and go to survival
         setTimeout(() => {
-            bot.chat('/server survival');
-            bot.setControlState('sneak', true);
-            movementCycle();
+            bot.chat(`/login ${PASSWORD}`);
+            
+            setTimeout(() => {
+                bot.chat('/server survival');
+                console.log('--- Bot moved to survival ---');
+            }, 2000);
+            
         }, 2000);
-    });
-
-    bot.on('error', (err) => { 
-        console.error('⚠️ Error detected:', err); 
     });
 
     bot.on('kicked', (reason) => { 
@@ -77,6 +47,8 @@ function createBot() {
         console.log('Bot disconnected. Reconnecting in 10 seconds...');
         setTimeout(createBot, 10000);
     });
+
+    bot.on('error', (err) => { console.log('Error:', err); });
 }
 
 createBot();
