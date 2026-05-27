@@ -1,6 +1,7 @@
 {
-  "serverHost": "example.aternos.me",
-  "serverPort": 12345,
-  "botUsername": "MyBot",
+  "serverHost": "fun.kelmora.cloud",
+  "serverPort": 25581,
+  "botUsername": "FatAl_TErr0r",
+  "auth": "microsoft",
   "botChunk": 1
 }
