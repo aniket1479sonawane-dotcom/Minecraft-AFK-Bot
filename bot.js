@@ -44,8 +44,8 @@ function createBot() {
     });
     
     bot.on('end', () => {
-        console.log('Bot disconnected. Reconnecting in 10 seconds...');
-        setTimeout(createBot, 10000);
+        console.log('Bot disconnected. Reconnecting in 60 seconds...');
+        setTimeout(createBot, 60000);
     });
 
     bot.on('error', (err) => { console.log('Error:', err); });
