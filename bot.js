@@ -1,66 +1,82 @@
 const mineflayer = require('mineflayer');
-const config = require('./config.json');
+const http = require('http');
 
-const bot = mineflayer.createBot({
-  host: config.serverHost,
-  port: config.serverPort,
-  username: config.botUsername,
-  auth: 'offline',
-  version: false,
-  viewDistance: config.botChunk
-});
+// Keep the service alive on Render
+http.createServer((req, res) => {
+    res.write('Bot is running!');
+    res.end();
+}).listen(process.env.PORT || 3000);
 
-let movementPhase = 0;
+const SERVER_HOST = 'fun.kelmora.cloud';
+const SERVER_PORT = 25581;
+const BOT_USERNAME = 'FatAl_TErr0r'; 
+const SERVER_VERSION = '1.21.1';
 const STEP_INTERVAL = 1500;
-const STEP_SPEED    = 1;
 const JUMP_DURATION = 500;
 
-bot.on('spawn', () => {
-  setTimeout(() => {
-    bot.setControlState('sneak', true);
-    console.log(`✅ ${config.botUsername} is Ready!`);
-  }, 3000);
+function createBot() {
+    console.log('--- Initializing Bot Connection ---');
 
-  setTimeout(movementCycle, STEP_INTERVAL);
-});
+    const bot = mineflayer.createBot({
+        host: SERVER_HOST,
+        port: SERVER_PORT,
+        username: BOT_USERNAME,
+        auth: 'microsoft',
+        version: SERVER_VERSION
+    });
 
-function movementCycle() {
-  if (!bot.entity) return;
+    let movementPhase = 0;
 
-  switch (movementPhase) {
-    case 0:
-      bot.setControlState('forward', true);
-      bot.setControlState('back', false);
-      bot.setControlState('jump', false);
-      break;
-    case 1:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', true);
-      bot.setControlState('jump', false);
-      break;
-    case 2:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', false);
-      bot.setControlState('jump', true);
-      setTimeout(() => {
-        bot.setControlState('jump', false);
-      }, JUMP_DURATION);
-      break;
-    case 3:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', false);
-      bot.setControlState('jump', false);
-      break;
-  }
+    function movementCycle() {
+        if (!bot.entity) return;
+        switch (movementPhase) {
+            case 0:
+                bot.setControlState('forward', true);
+                bot.setControlState('back', false);
+                bot.setControlState('jump', false);
+                break;
+            case 1:
+                bot.setControlState('forward', false);
+                bot.setControlState('back', true);
+                bot.setControlState('jump', false);
+                break;
+            case 2:
+                bot.setControlState('forward', false);
+                bot.setControlState('back', false);
+                bot.setControlState('jump', true);
+                setTimeout(() => { bot.setControlState('jump', false); }, JUMP_DURATION);
+                break;
+            case 3:
+                bot.setControlState('forward', false);
+                bot.setControlState('back', false);
+                bot.setControlState('jump', false);
+                break;
+        }
+        movementPhase = (movementPhase + 1) % 4;
+        setTimeout(movementCycle, STEP_INTERVAL);
+    }
 
-  movementPhase = (movementPhase + 1) % 4;
+    bot.once('spawn', () => {
+        console.log('✅ Bot spawned, running command...');
+        setTimeout(() => {
+            bot.chat('/server survival');
+            bot.setControlState('sneak', true);
+            movementCycle();
+        }, 2000);
+    });
 
-  setTimeout(movementCycle, STEP_INTERVAL);
+    bot.on('error', (err) => { 
+        console.error('⚠️ Error detected:', err); 
+    });
+
+    bot.on('kicked', (reason) => { 
+        console.log('Bot kicked! Reason:', JSON.stringify(reason)); 
+    });
+    
+    bot.on('end', () => {
+        console.log('Bot disconnected. Reconnecting in 10 seconds...');
+        setTimeout(createBot, 10000);
+    });
 }
 
-bot.on('error', (err) => {
-  console.error('⚠️ Error:', err);
-});
-bot.on('end', () => {
-  console.log('⛔️ Bot Disconnected!');
-});
+createBot();
