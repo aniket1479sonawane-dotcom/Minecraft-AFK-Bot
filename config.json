@@ -3,5 +3,6 @@
   "serverPort": 25581,
   "botUsername": "FatAl_TErr0r",
   "auth": "microsoft",
+  "version": "1.21.11",
   "botChunk": 1
 }
