@@ -1,54 +1,57 @@
 const mineflayer = require('mineflayer');
-const http = require('http');
+const express = require('express');
 
-// Keep the service alive on Render
-http.createServer((req, res) => {
-    res.write('Bot is running!');
-    res.end();
-}).listen(process.env.PORT || 3000);
+// --- WEB SERVER (Required to keep Render active) ---
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.get('/', (req, res) => res.send('Bot is online!'));
+app.listen(PORT, () => console.log(`Web server active on port ${PORT}`));
 
+// --- BOT SETTINGS ---
 const SERVER_HOST = 'fun.kelmora.cloud';
 const SERVER_PORT = 25581;
-const BOT_USERNAME = 'Obanai_Iguro1479'; // Choose any name you want
-const SERVER_VERSION = '1.21.11';
-const PASSWORD = 'Aniket@1479'; // CHANGE THIS to your server login password
+const BOT_USERNAME = 'Obanai_Iguro1479';
+const PASSWORD = 'Aniket@1479';
 
 function createBot() {
-    console.log('--- Initializing Offline Bot ---');
+    console.log('--- Initializing Bot ---');
 
     const bot = mineflayer.createBot({
-        host: SERVER_HOST,
-        port: SERVER_PORT,
         username: BOT_USERNAME,
-        auth: 'offline', // Switched to offline
-        version: SERVER_VERSION
+        version: '1.21.1',
+        auth: 'offline',
+        host: SERVER_HOST,
+        port: SERVER_PORT
+    });
+
+    bot.on('login', () => {
+        console.log('✅ Connected to game world!');
     });
 
     bot.once('spawn', () => {
-        console.log('✅ Bot spawned. Sending login command...');
-        
-        // Wait 2 seconds, then login and go to survival
+        console.log('✅ Bot spawned. Sending login...');
         setTimeout(() => {
             bot.chat(`/login ${PASSWORD}`);
-            
-            setTimeout(() => {
-                bot.chat('/server survival');
-                console.log('--- Bot moved to survival ---');
-            }, 2000);
-            
-        }, 2000);
+        }, 5000);
     });
 
-    bot.on('kicked', (reason) => { 
-        console.log('Bot kicked! Reason:', JSON.stringify(reason)); 
+    // Anti-AFK behavior: Look around occasionally
+    setInterval(() => {
+        bot.look(Math.random() * Math.PI * 2, (Math.random() - 0.5) * Math.PI / 2);
+    }, 10000);
+
+    bot.on('kicked', (reason) => {
+        console.log('--- KICKED BY SERVER ---', reason);
     });
-    
+
+    bot.on('error', (err) => {
+        console.log('Error:', err);
+    });
+
     bot.on('end', () => {
-        console.log('Bot disconnected. Reconnecting in 60 seconds...');
+        console.log('Disconnected. Reconnecting in 1 minute...');
         setTimeout(createBot, 60000);
     });
-
-    bot.on('error', (err) => { console.log('Error:', err); });
 }
 
 createBot();
