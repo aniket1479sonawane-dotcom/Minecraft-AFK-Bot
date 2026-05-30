@@ -1,57 +1,54 @@
 const mineflayer = require('mineflayer');
-const express = require('express');
+const http = require('http');
 
-// --- WEB SERVER (Required to keep Render active) ---
-const app = express();
-const PORT = process.env.PORT || 3000;
-app.get('/', (req, res) => res.send('Bot is online!'));
-app.listen(PORT, () => console.log(`Web server active on port ${PORT}`));
+// Keep the service alive on Render
+http.createServer((req, res) => {
+    res.write('Bot is running!');
+    res.end();
+}).listen(process.env.PORT || 3000);
 
-// --- BOT SETTINGS ---
 const SERVER_HOST = 'fun.kelmora.cloud';
 const SERVER_PORT = 25581;
-const BOT_USERNAME = 'Obanai_Iguro1479';
-const PASSWORD = 'Aniket@1479';
+const BOT_USERNAME = 'FatAl_Bot'; // Choose any name you want
+const SERVER_VERSION = '1.21.1';
+const PASSWORD = 'YOUR_PASSWORD_HERE'; // CHANGE THIS to your server login password
 
 function createBot() {
-    console.log('--- Initializing Bot ---');
+    console.log('--- Initializing Offline Bot ---');
 
     const bot = mineflayer.createBot({
-        username: BOT_USERNAME,
-        version: '1.21.1',
-        auth: 'offline',
         host: SERVER_HOST,
-        port: SERVER_PORT
-    });
-
-    bot.on('login', () => {
-        console.log('✅ Connected to game world!');
+        port: SERVER_PORT,
+        username: BOT_USERNAME,
+        auth: 'offline', // Switched to offline
+        version: SERVER_VERSION
     });
 
     bot.once('spawn', () => {
-        console.log('✅ Bot spawned. Sending login...');
+        console.log('✅ Bot spawned. Sending login command...');
+        
+        // Wait 2 seconds, then login and go to survival
         setTimeout(() => {
             bot.chat(`/login ${PASSWORD}`);
-        }, 5000);
+            
+            setTimeout(() => {
+                bot.chat('/server survival');
+                console.log('--- Bot moved to survival ---');
+            }, 2000);
+            
+        }, 2000);
     });
 
-    // Anti-AFK behavior: Look around occasionally
-    setInterval(() => {
-        bot.look(Math.random() * Math.PI * 2, (Math.random() - 0.5) * Math.PI / 2);
-    }, 10000);
-
-    bot.on('kicked', (reason) => {
-        console.log('--- KICKED BY SERVER ---', reason);
+    bot.on('kicked', (reason) => { 
+        console.log('Bot kicked! Reason:', JSON.stringify(reason)); 
     });
-
-    bot.on('error', (err) => {
-        console.log('Error:', err);
-    });
-
+    
     bot.on('end', () => {
-        console.log('Disconnected. Reconnecting in 1 minute...');
-        setTimeout(createBot, 60000);
+        console.log('Bot disconnected. Reconnecting in 10 seconds...');
+        setTimeout(createBot, 10000);
     });
+
+    bot.on('error', (err) => { console.log('Error:', err); });
 }
 
 createBot();
