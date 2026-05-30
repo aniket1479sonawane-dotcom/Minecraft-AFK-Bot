@@ -9,9 +9,9 @@ http.createServer((req, res) => {
 
 const SERVER_HOST = 'fun.kelmora.cloud';
 const SERVER_PORT = 25581;
-const BOT_USERNAME = 'FatAl_Bot'; // Choose any name you want
-const SERVER_VERSION = '1.21.1';
-const PASSWORD = 'YOUR_PASSWORD_HERE'; // CHANGE THIS to your server login password
+const BOT_USERNAME = 'Obanai_Iguro1479'; // Choose any name you want
+const SERVER_VERSION = '1.21.11';
+const PASSWORD = 'Aniket@1479'; // CHANGE THIS to your server login password
 
 function createBot() {
     console.log('--- Initializing Offline Bot ---');
